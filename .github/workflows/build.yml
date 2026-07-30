@@ -11,10 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: android
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -34,6 +30,8 @@ jobs:
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
+          name: Rugda-Debug-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
           name: Rugda-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           
