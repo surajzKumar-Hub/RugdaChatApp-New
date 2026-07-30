@@ -11,6 +11,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # NICHE AAPKE FOLDER KA EXACT NAAM AAYEGA
+    defaults:
+      run:
+        working-directory: AAPKE_FOLDER_KA_NAAM  # <--- Yahan folder ka naam likhein
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,11 +26,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Grant execute permission to Gradle Wrapper
+        run: chmod +x gradlew
 
-      - name: Build Debug APK with Gradle Action
-        run: gradle assembleDebug
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
