@@ -21,24 +21,19 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Locate Android Project
-        id: locate
-        run: |
-          GRADLEW=$(find . -type f -name gradlew | head -n 1)
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-          if [ -z "$GRADLEW" ]; then
-            echo "gradlew not found"
+      - name: Build Debug APK with Installed Gradle
+        run: |
+          BUILD_FILE=$(find . -name "build.gradle*" | head -n 1)
+          if [ -z "$BUILD_FILE" ]; then
+            echo "build.gradle file missing!"
             exit 1
           fi
-
-          chmod +x "$GRADLEW"
-
-          PROJECT_DIR=$(dirname "$GRADLEW")
-          echo "project_dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
-
-      - name: Build Debug APK
-        working-directory: ${{ steps.locate.outputs.project_dir }}
-        run: ./gradlew clean assembleDebug --stacktrace
+          PROJECT_DIR=$(dirname "$BUILD_FILE")
+          cd "$PROJECT_DIR"
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -46,3 +41,4 @@ jobs:
           name: Rugda-Debug-APK
           path: |
             **/build/outputs/apk/debug/*.apk
+            
