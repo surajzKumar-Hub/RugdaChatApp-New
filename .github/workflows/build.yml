@@ -11,11 +11,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # NICHE AAPKE FOLDER KA EXACT NAAM AAYEGA
-    defaults:
-      run:
-        working-directory: AAPKE_FOLDER_KA_NAAM  # <--- Yahan folder ka naam likhein
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -25,16 +20,49 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+          cache: gradle
 
-      - name: Grant execute permission to Gradle Wrapper
-        run: chmod +x gradlew
+      - name: Locate Android Project
+        id: locate
+        shell: bash
+        run: |
+          GRADLEW=$(find . -type f -name gradlew | head -n 1)
+
+          if [ -z "$GRADLEW" ]; then
+            echo "::error::gradlew not found!"
+            exit 1
+          fi
+
+          chmod +x "$GRADLEW"
+
+          PROJECT_DIR=$(dirname "$GRADLEW")
+
+          echo "Project: $PROJECT_DIR"
+
+          echo "project_dir=$PROJECT_DIR" >> $GITHUB_OUTPUT
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        working-directory: ${{ steps.locate.outputs.project_dir }}
+        run: |
+          ./gradlew clean assembleDebug --stacktrace --no-daemon
 
-      - name: Upload Debug APK
+      - name: Verify APK Exists
+        run: |
+          APK=$(find . -type f -name "*.apk" | head -n 1)
+
+          if [ -z "$APK" ]; then
+            echo "::error::APK not found!"
+            exit 1
+          fi
+
+          echo "APK Found:"
+          echo "$APK"
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Rugda-Debug-APK
-          path: '**/app/build/outputs/apk/debug/app-debug.apk'
-          
+          path: |
+            **/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          compression-level: 0
